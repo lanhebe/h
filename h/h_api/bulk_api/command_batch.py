@@ -18,6 +18,7 @@ class CommandBatch:
         :param on_flush: Callback to call when it's time to execute
         :param batch_size: The max size of a batch
         """
+
         self.on_flush = on_flush
 
         self.batch = None
@@ -27,6 +28,7 @@ class CommandBatch:
 
     def flush(self):
         """Flush the current batch of commands to the callback."""
+
         if not self.batch:
             self.batch = None
             return
@@ -43,22 +45,30 @@ class CommandBatch:
 
         Making this a context manager allows us to do the prep-work we need
         to before and after a command is added.
+
+        In order to ensure that the final batch of commands is correctly
+        processed the caller must call `flush()` after all `add()` calls are
+        complete.
         """
 
         self._check_sequence(command)
 
+        # The above command might result in flushing previous commands. This
+        # may be necessary to process this command as the previous batch could
+        # return a concrete id for a reference we rely on now.
         yield
-
-        if self.batch and len(self.batch) >= self.batch_size:
-            self.flush()
 
         if self.batch is None:
             self.batch = []
 
         self.batch.append(command)
 
+        if self.batch and len(self.batch) >= self.batch_size:
+            self.flush()
+
     def _check_sequence(self, command):
         """Check to see if the command sequence is wrong / requires a flush."""
+
         command_key = (command.type, command.body.type)
 
         if self.current_task is None:
