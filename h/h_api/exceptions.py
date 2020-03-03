@@ -35,6 +35,12 @@ class CommandSequenceException(SimpleJSONAPIException):
     http_status = 400
 
 
+class InvalidDeclaration(SimpleJSONAPIException):
+    """The client has declared statement which is false or out of bounds."""
+
+    http_status = 400
+
+
 class UnpopulatedReferenceError(SimpleJSONAPIException):
     """The client used an id reference which was not created."""
 
@@ -77,7 +83,7 @@ class SchemaValidationError(JSONAPIException):
                     "schema": {"pointer": self._path_to_string(error.schema_path)},
                     "context": [context.message for context in error.context],
                 },
-                status=self.http_status,
+                status=self.http_status
             )
         )
 
